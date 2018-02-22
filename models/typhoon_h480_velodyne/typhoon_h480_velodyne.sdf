@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version='1.5'>
+  <model name='typhoon_h480_velodyne'>
+
+    <include>
+      <uri>model://typhoon_h480_nocam</uri>
+      <name>typhoon_h480_nocam</name>
+    </include> 
+
+    <include>
+      <uri>model://velodyne</uri>
+      <pose>0 0 0.45 0 0 1.5708</pose>
+      <name>velodyne</name>
+    </include>
+    
+    <joint name="velodyne_joint" type="fixed">
+      <child>velodyne::base_footprint</child>
+      <parent>typhoon_h480_nocam::base_link</parent>
+    </joint>
+
+  </model>
+</sdf>
+<!-- vim: set noet fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
+

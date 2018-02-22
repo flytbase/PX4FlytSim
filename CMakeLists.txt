@@ -9,7 +9,7 @@ endif()
 
 message(STATUS "install-prefix: ${CMAKE_INSTALL_PREFIX}")
 
-project(mavlink_sitl_gazebo VERSION 1.0.0)
+project(sitl_gazebo VERSION 1.0.0)
 include(GNUInstallDirs)
 
 #######################
@@ -22,7 +22,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 option(BUILD_GSTREAMER_PLUGIN "enable gstreamer plugin" "OFF")
 
-option(BUILD_ROS_INTERFACE "enable ROS subscriber for motor failure plugin" "OFF")
+option(BUILD_ROS_INTERFACE "enable ROS subscriber for motor failure plugin" "ON")
 
 ## System dependencies are found with CMake's conventions
 find_package(PkgConfig REQUIRED)
@@ -44,33 +44,35 @@ endif()
 include_directories(SYSTEM ${GAZEBO_INCLUDE_DIRS})
 link_directories(${GAZEBO_LIBRARY_DIRS})
 
-add_subdirectory( external/OpticalFlow OpticalFlow )
-set( OpticalFlow_LIBS "OpticalFlow" )
+#add_subdirectory( external/OpticalFlow OpticalFlow )
+#set( OpticalFlow_LIBS "OpticalFlow" )
 
 # for ROS subscribers and publishers
 if (BUILD_ROS_INTERFACE)
-  find_package(roscpp REQUIRED)
-  find_package(mavros REQUIRED)
-  find_package(mavros_msgs REQUIRED)
-  find_package(geometry_msgs REQUIRED)
-  find_package(sensor_msgs REQUIRED)
-  find_package(mav_msgs REQUIRED)
+  find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    sensor_msgs
+    geometry_msgs
+    tf
+    gazebo_ros
+  )
 endif()
+
 
 # find MAVLink
 find_package(MAVLink)
 
 # see if catkin was invoked to build this
 if (CATKIN_DEVEL_PREFIX)
-  message(STATUS "catkin ENABLED")
+  message("catkin ENABLED")
   find_package(catkin REQUIRED)
   if (catkin_FOUND)
     catkin_package()
   else()
-    message(FATAL_ERROR "catkin not found")
+    message("catkin not found")
   endif()
 else()
-  message(STATUS "catkin DISABLED")
+  message("catkin DISABLED")
 endif()
 
 # XXX this approach is extremely error prone
@@ -134,7 +136,7 @@ endforeach()
 
 include_directories(
   include
-  ${OpticalFlow_INCLUDE_DIRS}
+  #${OpticalFlow_INCLUDE_DIRS}
   ${GAZEBO_INCLUDE_DIRS}
   ${GAZEBO_MSG_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
@@ -148,6 +150,7 @@ include_directories(
   /usr/local/include/OGRE
   /usr/local/include/OGRE/Paging
   ${MAVLINK_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
   )
 
 if (GSTREAMER_FOUND)
@@ -163,6 +166,8 @@ link_libraries(
   ${Boost_SYSTEM_LIBRARY_RELEASE}
   ${Boost_THREAD_LIBRARY_RELEASE}
   ${Boost_TIMER_LIBRARY_RELEASE}
+  ${catkin_LIBRARIES}
+  RayPlugin
   )
 
 if (GSTREAMER_FOUND)
@@ -263,19 +268,18 @@ link_libraries(mav_msgs)
 
 add_library(rotors_gazebo_gimbal_controller_plugin SHARED src/gazebo_gimbal_controller_plugin.cpp)
 target_link_libraries(rotors_gazebo_gimbal_controller_plugin ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES} ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_THREAD_LIBRARY_RELEASE})
-# add_dependencies(rotors_gazebo_gimbal_controller_plugin)
-
 add_library(rotors_gazebo_controller_interface SHARED src/gazebo_controller_interface.cpp)
 add_library(rotors_gazebo_motor_model SHARED src/gazebo_motor_model.cpp)
 add_library(rotors_gazebo_multirotor_base_plugin SHARED src/gazebo_multirotor_base_plugin.cpp)
 add_library(rotors_gazebo_imu_plugin SHARED src/gazebo_imu_plugin.cpp)
-add_library(gazebo_opticalFlow_plugin SHARED src/gazebo_opticalFlow_plugin.cpp)
-target_link_libraries(gazebo_opticalFlow_plugin ${OpticalFlow_LIBS})
+#add_library(gazebo_opticalFlow_plugin SHARED src/gazebo_opticalFlow_plugin.cpp)
+#target_link_libraries(gazebo_opticalFlow_plugin ${OpticalFlow_LIBS})
 add_library(gazebo_lidar_plugin SHARED src/gazebo_lidar_plugin.cpp)
 add_library(gazebo_irlock_plugin SHARED src/gazebo_irlock_plugin.cpp)
 add_library(rotors_gazebo_mavlink_interface SHARED src/gazebo_mavlink_interface.cpp src/geo_mag_declination.cpp)
 #add_library(rotors_gazebo_wind_plugin SHARED src/gazebo_wind_plugin.cpp)
 add_library(gazebo_sonar_plugin SHARED src/gazebo_sonar_plugin.cpp)
+add_library(gazebo_velodyne_laser_plugin SHARED src/gazebo_velodyne_laser_plugin.cpp)
 add_library(gazebo_uuv_plugin SHARED src/gazebo_uuv_plugin.cpp)
 add_library(gazebo_gps_plugin SHARED src/gazebo_gps_plugin.cpp)
 add_library(gazebo_vision_plugin SHARED src/gazebo_vision_plugin.cpp)
@@ -285,53 +289,54 @@ set(plugins
   rotors_gazebo_motor_model
   rotors_gazebo_multirotor_base_plugin
   rotors_gazebo_imu_plugin
-  gazebo_opticalFlow_plugin
+  #gazebo_opticalFlow_plugin
   gazebo_lidar_plugin
   gazebo_irlock_plugin
   rotors_gazebo_mavlink_interface
   #rotors_gazebo_wind_plugin
   gazebo_sonar_plugin
+  gazebo_velodyne_laser_plugin
   gazebo_uuv_plugin
   gazebo_gps_plugin
   gazebo_vision_plugin
   )
 
 # ROS mavlink version not compatible with geotagged images plugin
-if (NOT roscpp_FOUND)
-  add_library(gazebo_geotagged_images_plugin SHARED src/gazebo_geotagged_images_plugin.cpp)
-  list(APPEND plugins gazebo_geotagged_images_plugin)
-endif()
+#if (NOT roscpp_FOUND)
+#  add_library(gazebo_geotagged_images_plugin SHARED src/gazebo_geotagged_images_plugin.cpp)
+#  list(APPEND plugins gazebo_geotagged_images_plugin)
+#endif()
 
 #If BUILD_ROS_INTERFACE set to ON, build gazebo_hil_interface and gazebo_motor_failure_plugin
-if (BUILD_ROS_INTERFACE)
-  add_library(gazebo_motor_failure_plugin SHARED src/gazebo_motor_failure_plugin.cpp)
-  target_link_libraries(gazebo_motor_failure_plugin ${GAZEBO_libraries} ${roscpp_LIBRARIES})
-  list(APPEND plugins gazebo_motor_failure_plugin)
-  message(STATUS "adding gazebo_motor_failure_plugin to build")
-
-  include_directories(
-    include
-    ${mavros_msgs_INCLUDE_DIRS}
-    ${geometry_msgs_INCLUDE_DIRS}
-    ${sensor_msgs_INCLUDE_DIRS}
-    ${mav_msgs_INCLUDE_DIRS}
-    )
-  add_executable(gazebo_hil_interface
-    src/gazebo_hil_interface.cpp
-  )
-
-  add_dependencies(gazebo_hil_interface
-    ${catkin_EXPORTED_TARGETS}
-    ${mavros_EXPORTED_TARGETS}
-    ${mavros_msgs_EXPORTED_TARGETS}
-  )
-
-  target_link_libraries(gazebo_hil_interface
-    ${catkin_LIBRARIES}
-    ${mavros_LIBRARIES}
-  )
-  message(STATUS "adding gazebo_hil_interface to build")
-endif()
+#if (BUILD_ROS_INTERFACE)
+#  add_library(gazebo_motor_failure_plugin SHARED src/gazebo_motor_failure_plugin.cpp)
+#  target_link_libraries(gazebo_motor_failure_plugin ${GAZEBO_libraries} ${roscpp_LIBRARIES})
+#  list(APPEND plugins gazebo_motor_failure_plugin)
+#  message(STATUS "adding gazebo_motor_failure_plugin to build")
+#
+#  include_directories(
+#    include
+#    ${mavros_msgs_INCLUDE_DIRS}
+#    ${geometry_msgs_INCLUDE_DIRS}
+#    ${sensor_msgs_INCLUDE_DIRS}
+#    ${mav_msgs_INCLUDE_DIRS}
+#    )
+#  add_executable(gazebo_hil_interface
+#    src/gazebo_hil_interface.cpp
+#  )
+#
+#  add_dependencies(gazebo_hil_interface
+#    ${catkin_EXPORTED_TARGETS}
+#    ${mavros_EXPORTED_TARGETS}
+#    ${mavros_msgs_EXPORTED_TARGETS}
+#  )
+#
+#  target_link_libraries(gazebo_hil_interface
+#    ${catkin_LIBRARIES}
+#    ${mavros_LIBRARIES}
+#  )
+#  message(STATUS "adding gazebo_hil_interface to build")
+#endif()
 
 if (GSTREAMER_FOUND)
   add_library(gazebo_gst_camera_plugin SHARED src/gazebo_gst_camera_plugin.cpp)
@@ -384,6 +389,15 @@ install(FILES ${worlds_list} DESTINATION ${RESOURCE_PATH}/worlds)
 configure_file(src/setup.sh.in "${CMAKE_CURRENT_BINARY_DIR}/setup.sh" @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/setup.sh DESTINATION ${RESOURCE_PATH})
 
+file(GLOB launch_files_list LIST_DIRECTORIES true ${PROJECT_SOURCE_DIR}/launch/*)
+install(FILES ${launch_files_list} DESTINATION ${RESOURCE_PATH}/launch)
+
+file(GLOB posix_list LIST_DIRECTORIES true ${PROJECT_SOURCE_DIR}/posix)
+install(DIRECTORY ${posix_list} DESTINATION ${RESOURCE_PATH} USE_SOURCE_PERMISSIONS)
+
+file(GLOB scripts_list LIST_DIRECTORIES true ${PROJECT_SOURCE_DIR}/scripts)
+install(DIRECTORY ${scripts_list} DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME} USE_SOURCE_PERMISSIONS)
+
 
 #############
 ## Testing ##
@@ -413,3 +427,4 @@ set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${GAZEBO_MAJOR_VERSION}-${PROJECT_V
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${GAZEBO_MAJOR_VERSION}-${PROJECT_VERSION}")
 
 include(CPack)
+# vim: set et fenc= ff=unix sts=0 sw=2 ts=2 :

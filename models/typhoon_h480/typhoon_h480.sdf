@@ -399,11 +399,12 @@
         </camera>
         <always_on>1</always_on>
         <update_rate>10</update_rate>
-        <visualize>true</visualize>
-        <!-- how to make this work without using urdf?
+        <visualize>false</visualize>
+        <!-- how to make this work without using urdf? -->
         <plugin name="cgo3_camera_controller" filename="libgazebo_ros_camera.so">
+          <robotNamespace></robotNamespace>
           <alwaysOn>true</alwaysOn>
-          <updateRate>0.0</updateRate>
+          <updateRate>10.0</updateRate>
           <cameraName>cgo3_camera</cameraName>
           <imageTopicName>image_raw</imageTopicName>
           <cameraInfoTopicName>camera_info</cameraInfoTopicName>
@@ -418,7 +419,7 @@
         -->
         <!-- GStreamer camera plugin (needs a lot of CPU! Consider lowering the
              camera image size) -->
-        <plugin name="GstCameraPlugin" filename="libgazebo_gst_camera_plugin.so">
+        <!-- <plugin name="GstCameraPlugin" filename="libgazebo_gst_camera_plugin.so">
             <robotNamespace></robotNamespace>
             <udpPort>5600</udpPort>
         </plugin>
@@ -427,7 +428,7 @@
             <interval>1</interval>
             <width>3840</width>
             <height>2160</height>
-        </plugin>
+        </plugin> -->
       </sensor>
     </link>
     <joint name='cgo3_camera_joint' type='revolute'>
@@ -1139,7 +1140,7 @@
       </physics>
     </joint>
 
-    <include>
+    <!-- <include>
       <uri>model://sonar</uri>
     </include>
     <joint name="sonar_joint" type="revolute">
@@ -1152,7 +1153,7 @@
           <lower>0</lower>
         </limit>
       </axis>
-    </joint>
+    </joint> -->
 
 
     <plugin name='rosbag' filename='librotors_gazebo_multirotor_base_plugin.so'>

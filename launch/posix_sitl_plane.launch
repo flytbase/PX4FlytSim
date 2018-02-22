@@ -1,0 +1,33 @@
+<launch>
+    <!-- Posix SITL environment launch script -->
+
+    <arg name="headless" default="false"/>
+    <arg name="gui" default="true"/>
+    <arg name="ns" default="/"/>
+    <arg name="world" default="plane"/>
+    <arg name="camera" default="false"/>
+    <arg name="global_namespace" default="flytsim"/>
+    
+    <group ns="$(arg global_namespace)">
+        <node pkg="sitl_gazebo" type="sitl_run.sh" name="simulator" args="ekf2 none gazebo plane $(find sitl_gazebo) " >
+            <env name="no_sim" value="1" />
+        </node>
+         <include file="$(find gazebo_ros)/launch/empty_world.launch">
+            <arg name="headless" value="$(arg headless)"/>
+            <arg name="gui" value="$(arg gui)"/>
+            <arg name="world_name" value="$(find sitl_gazebo)/worlds/$(arg world).world" />
+        </include>
+
+        <node name="spawn_plane" pkg="gazebo_ros" type="spawn_model"
+         args="-sdf 
+               -database plane
+               -model plane
+               -gazebo_namespace /$(arg global_namespace)/gazebo
+               -x 0
+               -y 0
+               -z 0.5"
+         respawn="false" >
+        </node>
+
+    </group>
+</launch>

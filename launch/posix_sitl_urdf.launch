@@ -1,0 +1,29 @@
+<launch>
+  <arg name="mav_name" default="iris"/>
+  <arg name="world_name" default="empty"/>
+  <arg name="enable_logging" default="false"/>
+  <arg name="enable_ground_truth" default="false"/>
+  <arg name="log_file" default="$(arg mav_name)"/>
+  <arg name="global_namespace" default="flytsim"/>
+  <arg name="appname" default="mainapp" />
+
+  <!-- <env name="GAZEBO_MODEL_PATH" value="$(find rotors_gazebo)/models"/> -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find sitl_gazebo)/worlds/city.world"/>
+    <!-- <arg name="debug" value="true" /> -->
+    <!-- <arg name="paused" value="true" /> -->
+    <arg name="gui" value="true" />
+  </include>
+  <group ns="$(arg global_namespace)">
+    <node pkg="sitl_gazebo" type="sitl_run.sh" name="simulator" args="rcS none gazebo iris $(find sitl_gazebo) $(arg appname)">
+        <env name="no_sim" value="1" />
+    </node>
+    <include file="$(find sitl_gazebo)/launch/spawn_iris.launch">
+      <arg name="mav_name" value="$(arg mav_name)" />
+      <arg name="model" value="$(find sitl_gazebo)/models/rotors_description/urdf/$(arg mav_name)_base.xacro" />
+      <arg name="enable_logging" value="$(arg enable_logging)" />
+      <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
+      <arg name="log_file" value="$(arg log_file)"/>
+    </include>
+  </group>
+</launch>

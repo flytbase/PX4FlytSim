@@ -107,6 +107,7 @@ namespace gazebo
 
     private: double pitchCommand;
     private: double yawCommand;
+    private: double yawCommandComp;
     private: double rollCommand;
 
     private: transport::NodePtr node;

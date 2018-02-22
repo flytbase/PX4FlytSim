@@ -1,0 +1,22 @@
+<launch>
+  <arg name="model" default="iris" />
+  <arg name="appname" default="mainapp" />
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.1"/>
+
+    <node pkg="sitl_gazebo" type="sitl_run_cloud.sh" name="simulator_$(arg model)" args="rcS none gazebo iris $(find sitl_gazebo) $(arg appname)" >
+        <env name="no_sim" value="1" />
+    </node>
+
+    <node name="spawn_$(arg model)" pkg="gazebo_ros" type="spawn_model"
+     args="-sdf 
+           -database iris
+           -model $(arg model)
+           -x $(arg x)
+           -y $(arg y)
+           -z $(arg z)"
+     respawn="false">
+    </node>
+
+</launch>
