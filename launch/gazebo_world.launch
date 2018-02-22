@@ -1,0 +1,16 @@
+<launch>
+    <!-- Posix SITL environment launch script -->
+
+    <arg name="headless" default="false"/>
+    <arg name="gui" default="false"/>
+    <arg name="ns" default="/"/>
+    <arg name="world" default="house"/>
+    <arg name="build" default="posix_sitl_default"/>
+    <arg name="appname" default="mainapp" />
+    
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="headless" value="$(arg headless)"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="world_name" value="$(find sitl_gazebo)/worlds/$(arg world).world" />
+    </include>
+</launch>

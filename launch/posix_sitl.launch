@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<launch>
+    <!-- Posix SITL environment launch script -->
+
+    <arg name="headless" default="false"/>
+    <arg name="gui" default="true"/>
+    <arg name="world" default="city"/>
+    <arg name="camera" default="true"/>
+    <arg name="velodyne" default="false"/>
+    <arg name="global_namespace" default="/"/>
+
+    <node pkg="sitl_gazebo" type="sitl_run.sh" name="simulator" args="ekf2 none gazebo typhoon_h480 $(find sitl_gazebo)">
+        <env name="no_sim" value="" />
+    </node>
+
+    <group if="$(arg velodyne)">
+        <include file="$(find gazebo_ros)/launch/empty_world.launch">
+            <arg name="headless" value="$(arg headless)"/>
+            <arg name="gui" value="$(arg gui)"/>
+            <arg name="verbose" value="true"/>
+            <arg name="world_name" value="$(find sitl_gazebo)/worlds/$(arg world)_typhoon_h480_velodyne.world" />
+        </include>
+    </group>
+
+    <group unless="$(arg velodyne)">
+        <group if="$(arg camera)">
+            <include file="$(find gazebo_ros)/launch/empty_world.launch">
+                <arg name="headless" value="$(arg headless)"/>
+                <arg name="gui" value="$(arg gui)"/>
+                <arg name="verbose" value="true"/>
+                <arg name="world_name" value="$(find sitl_gazebo)/worlds/$(arg world)_typhoon_h480.world" />
+            </include>
+        </group>
+
+        <group unless="$(arg camera)">
+            <include file="$(find gazebo_ros)/launch/empty_world.launch">
+                <arg name="headless" value="$(arg headless)"/>
+                <arg name="gui" value="$(arg gui)"/>
+                <arg name="verbose" value="true"/>
+                <arg name="world_name" value="$(find sitl_gazebo)/worlds/$(arg world)_typhoon_h480_nocam.world" />
+            </include>
+        </group>
+    </group>
+
+</launch>

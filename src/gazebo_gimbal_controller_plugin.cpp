@@ -35,6 +35,7 @@ GimbalControllerPlugin::GimbalControllerPlugin()
   this->pitchCommand = 0.5* M_PI;
   this->rollCommand = 0;
   this->yawCommand = 0;
+  this->yawCommandComp = 0;
   this->lastImuYaw = 0;
 }
 
@@ -299,7 +300,7 @@ void GimbalControllerPlugin::OnUpdate()
     const double yDir = 1;
 
     // We want yaw to control in body frame, not in global.
-    this->yawCommand += this->lastImuYaw;
+    this->yawCommandComp = this->yawCommand + this->lastImuYaw;
 
     // truncate command inside joint angle limits
     double rollLimited = ignition::math::clamp(this->rollCommand,
@@ -308,7 +309,7 @@ void GimbalControllerPlugin::OnUpdate()
     double pitchLimited = ignition::math::clamp(this->pitchCommand,
       pDir*this->pitchJoint->GetUpperLimit(0).Radian(),
       pDir*this->pitchJoint->GetLowerLimit(0).Radian());
-    double yawLimited = ignition::math::clamp(this->yawCommand,
+    double yawLimited = ignition::math::clamp(this->yawCommandComp,
       yDir*this->yawJoint->GetLowerLimit(0).Radian(),
 	  yDir*this->yawJoint->GetUpperLimit(0).Radian());
 
